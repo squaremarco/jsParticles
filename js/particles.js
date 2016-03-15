@@ -53,7 +53,9 @@
 	function drawParticles() {
 		for(var i = 0; i < particles.length; i++){
 			ctx.fillStyle = particles[i].color;
-			ctx.fillRect(particles[i].position.x, particles[i].position.y, 1, 1);
+			ctx.beginPath();
+			ctx.arc(particles[i].position.x, particles[i].position.y, 2, 0, 2 * Math.PI);
+			ctx.fill();
 		}
 	}
 
@@ -120,4 +122,4 @@
 
 	addEmitter();
 	loop();
-})();
+}());
