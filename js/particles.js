@@ -6,12 +6,13 @@
 	canvas.width = opt.w || window.innerWidth - 5;
 	canvas.height = opt.h || window.innerHeight - 5;
 
-	var maxParticles = opt.max || 1000,
-	particleRate = opt.rate || 10;
+	var maxParticles = opt.max || 2000,
+	particleRate = opt.rate || 4;
 
 
 	var particles = [],
-	emitters = [];
+	emitters = [],
+	fields = [];
 
 	function loop() {
 		clear();
@@ -44,26 +45,33 @@
 		}
 	}
 
-	function addEmitter() {
-		var point = new Vector(canvas.width / 2, canvas.height / 2),
-		velocity = new Vector(1, 0);
-		emitters.push(new Emitter(point, velocity, Math.PI));
+	function addEmitter(point, velocity, spread) {
+		emitters.push(new Emitter(point, velocity, spread)); //Range of values[0, 2 * Math.PI]
+	}
+
+	function addField(point, mass) {
+		fields.push(new Field(point, mass));
 	}
 
 	function drawParticles() {
 		for(var i = 0; i < particles.length; i++){
 			ctx.fillStyle = particles[i].color;
 			ctx.beginPath();
-			ctx.arc(particles[i].position.x, particles[i].position.y, 2, 0, 2 * Math.PI);
+			ctx.arc(particles[i].position.x, particles[i].position.y, 1, 0, 2 * Math.PI);
 			ctx.fill();
 		}
 	}
 
 	function updateParticles(bw, bh) {
 		particles = particles.filter(function(p){
+			p.fieldEffect();
 			p.move();
 			return p.position.x >= 0 && p.position.x <= bw && p.position.y >= 0 && p.position.y <= bh;
 		});
+	}
+
+	function randomColor() {
+		return "#" + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16);
 	}
 
 	var Vector = function(x, y) {
@@ -94,13 +102,25 @@
 		this.position = point || new Vector(0, 0);
 		this.velocity = velocity || new Vector(0, 0);
 		this.acceleration = acceleration || new Vector(0, 0);
-		this.color = "#" + Math.floor(Math.random()*16).toString(16) + Math.floor(Math.random()*16).toString(16) + Math.floor(Math.random()*16).toString(16);
+		this.color = randomColor();
 	}
 
 	Particle.prototype = {
 		move : function() {
 			this.velocity.add(this.acceleration);
 			this.position.add(this.velocity);
+		},
+
+		fieldEffect : function() {
+			var ax = 0, ay = 0;
+			for(var i = 0; i < fields.length; i++){
+				var vecx = fields[i].position.x - this.position.x,
+				vecy = fields[i].position.y - this.position.y;
+				var force = fields[i].mass / Math.pow(vecx * vecx + vecy * vecy, 1.5);
+				ax += vecx * force;
+				ay += vecy * force;
+			}
+			this.acceleration = new Vector(ax, ay);
 		}
 	}
 
@@ -112,7 +132,7 @@
 
 	Emitter.prototype = {
 		emitParticle : function() {
-			var angle = this.velocity.getAngle() + Math.random() * this.spread * 2 - this.spread,
+			var angle = this.velocity.getAngle() + Math.random() * this.spread - this.spread / 2,
 			magnitude = this.velocity.getMagnitude(),
 			position = new Vector(this.position.x, this.position.y),
 			velocity = Vector.prototype.fromPolar(magnitude, angle);
@@ -120,6 +140,21 @@
 		},
 	}
 
-	addEmitter();
+	var Field = function(center, mass){
+		this.position = center;
+		this.mass = mass || 100;
+	}
+
+	Field.prototype = {
+		setMass : function(mass){
+			this.mass = mass || 100;
+		}
+	}
+
+	addEmitter(new Vector(canvas.width / 2, canvas.height / 2), Vector.prototype.fromPolar(1, 0), 2 * Math.PI);
+	addField(new Vector(canvas.width / 2 + 100, canvas.height / 2 + 100), -50);
+	addField(new Vector(canvas.width / 2 - 100, canvas.height / 2 - 100), -50);
+	addField(new Vector(canvas.width / 2 - 100, canvas.height / 2 + 100), -50);
+	addField(new Vector(canvas.width / 2 + 100, canvas.height / 2 - 100), -50);
 	loop();
 }());

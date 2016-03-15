@@ -1,11 +1,8 @@
-body {
-  position: relative;
+body, html{
   margin: 0;
   padding: 0;
 }
 
 #canvas {
-  margin: 0;
-  padding: 0;
   background: #000000;
 }
