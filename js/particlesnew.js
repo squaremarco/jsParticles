@@ -6,7 +6,7 @@
 	canvas.width = opt.w || window.innerWidth - 5;
 	canvas.height = opt.h || window.innerHeight - 5;
 
-	var maxParticles = opt.max || 1000,
+	var maxParticles = opt.max || 100000,
 	particleRate = opt.rate || 10;
 
 
@@ -18,6 +18,7 @@
 		update();
 		draw();
 		queue();
+		console.log("ok");
 	}
 
 	function clear() {
@@ -47,21 +48,25 @@
 	function addEmitter() {
 		var point = new Vector(canvas.width / 2, canvas.height / 2),
 		velocity = new Vector(1, 0);
-		emitters.push(new Emitter(point, velocity, Math.PI));
+		emitters.push(new Emitter(point, velocity));
 	}
 
 	function drawParticles() {
+		ctx.fillStyle = "#00f";
 		for(var i = 0; i < particles.length; i++){
-			ctx.fillStyle = particles[i].color;
 			ctx.fillRect(particles[i].position.x, particles[i].position.y, 1, 1);
 		}
 	}
 
 	function updateParticles(bw, bh) {
-		particles = particles.filter(function(p){
-			p.move();
-			return p.position.x >= 0 && p.position.x <= bw && p.position.y >= 0 && p.position.y <= bh;
-		});
+		var newParticles = [];
+		for(var i = 0; i < particles.length; i++){
+			var particle = particles[i];
+			if(particle.position.x >= 0 && particle.position.x <= bw && particle.position.y >= 0 && particle.position <= bh) continue;
+			particle.move();
+			newParticles.push(particle);
+		}
+		particles = newParticles;
 	}
 
 	var Vector = function(x, y) {
@@ -92,7 +97,6 @@
 		this.position = point || new Vector(0, 0);
 		this.velocity = velocity || new Vector(0, 0);
 		this.acceleration = acceleration || new Vector(0, 0);
-		this.color = "#" + Math.floor(Math.random()*16).toString(16) + Math.floor(Math.random()*16).toString(16) + Math.floor(Math.random()*16).toString(16);
 	}
 
 	Particle.prototype = {
