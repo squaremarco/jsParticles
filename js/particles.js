@@ -3,11 +3,11 @@
 	ctx = canvas.getContext('2d'),
 	opt = options || {};
 
-	canvas.width = opt.w || window.innerWidth - 5;
-	canvas.height = opt.h || window.innerHeight - 5;
+	canvas.width = opt.w || window.innerWidth - 20;
+	canvas.height = opt.h || window.innerHeight - 20;
 
 	var maxParticles = opt.max || 2000,
-	particleRate = opt.rate || 4;
+	particleRate = opt.rate || 2;
 
 
 	var particles = [],
@@ -32,6 +32,8 @@
 
 	function draw() {
 		drawParticles();
+		drawEmitters();
+		drawFields();
 	}
 
 	function queue() {
@@ -62,6 +64,24 @@
 		}
 	}
 
+	function drawEmitters() {
+		for(var i = 0; i < emitters.length; i++){
+			ctx.fillStyle = emitters[i].color;
+			ctx.beginPath();
+			ctx.arc(emitters[i].position.x, emitters[i].position.y, 2, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+	}
+
+	function drawFields() {
+		for(var i = 0; i < fields.length; i++){
+			ctx.fillStyle = fields[i].color;
+			ctx.beginPath();
+			ctx.arc(fields[i].position.x, fields[i].position.y, 2, 0, 2 * Math.PI);
+			ctx.fill();
+		}
+	}
+
 	function updateParticles(bw, bh) {
 		particles = particles.filter(function(p){
 			p.fieldEffect();
@@ -71,7 +91,7 @@
 	}
 
 	function randomColor() {
-		return "#" + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16);
+		return "#" + Math.floor(Math.random() * 155 + 100).toString(16) + Math.floor(Math.random() * 155 + 100).toString(16) + Math.floor(Math.random() * 100).toString(16);
 	}
 
 	var Vector = function(x, y) {
@@ -128,6 +148,7 @@
 		this.position = center;
 		this.velocity = velocity;
 		this.spread = spread || Math.PI / 32;
+		this.color = "#ff0";
 	}
 
 	Emitter.prototype = {
@@ -137,24 +158,24 @@
 			position = new Vector(this.position.x, this.position.y),
 			velocity = Vector.prototype.fromPolar(magnitude, angle);
 			return new Particle(position, velocity)
-		},
+		}
 	}
 
 	var Field = function(center, mass){
 		this.position = center;
 		this.mass = mass || 100;
+		this.color = (mass <= 0) ? "#f00" : "#0f0";
 	}
 
 	Field.prototype = {
 		setMass : function(mass){
 			this.mass = mass || 100;
+			this.color = (mass <= 0) ? "#f00" : "#0f0";
 		}
 	}
 
-	addEmitter(new Vector(canvas.width / 2, canvas.height / 2), Vector.prototype.fromPolar(1, 0), 2 * Math.PI);
-	addField(new Vector(canvas.width / 2 + 100, canvas.height / 2 + 100), -50);
-	addField(new Vector(canvas.width / 2 - 100, canvas.height / 2 - 100), -50);
-	addField(new Vector(canvas.width / 2 - 100, canvas.height / 2 + 100), -50);
-	addField(new Vector(canvas.width / 2 + 100, canvas.height / 2 - 100), -50);
+	addEmitter(new Vector(canvas.width / 2 + 100, canvas.height / 2), Vector.prototype.fromPolar(1, Math.PI * 5/4), Math.PI / 12);
+	addField(new Vector(canvas.width / 2, canvas.height / 2), -5);
+	addField(new Vector(canvas.width / 2 - 10, canvas.height / 2 + 30), 100);
 	loop();
 }());
